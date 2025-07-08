@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/config/app_router.dart';
 import 'package:shop_ease_admin/core/app_theme.dart';
+import 'package:shop_ease_admin/data/repositories/auth_repository.dart';
 import 'package:shop_ease_admin/data/repositories/banner_repository.dart';
 import 'package:shop_ease_admin/data/repositories/product_repository.dart';
+import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ShopEaseAdminApp extends StatelessWidget {
   const ShopEaseAdminApp({super.key});
@@ -16,6 +19,13 @@ class ShopEaseAdminApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => BannerBloc(BannerRepository())),
         BlocProvider(create: (_) => ProductBloc(ProductRepository())),
+
+        BlocProvider(
+          create:
+              (_) => AuthBloc(
+                AuthRepository(supabaseClient: Supabase.instance.client),
+              ),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
