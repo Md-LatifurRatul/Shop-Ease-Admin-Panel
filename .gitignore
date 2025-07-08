@@ -47,3 +47,4 @@ app.*.map.json
 # Remote API URL
 
 /lib/core/api_remote_base_url.dart
+/lib/core/auth_url.dart
