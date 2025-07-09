@@ -41,3 +41,7 @@ class BannerLoaded extends BannerState {
   @override
   List<Object?> get props => [banners];
 }
+
+class BannerTitleExists extends BannerState {}
+
+class BannerTitleAvailable extends BannerState {}

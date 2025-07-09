@@ -80,4 +80,14 @@ class BannerRepository {
       throw Exception("Failed to delete banner");
     }
   }
+
+  Future<bool> doesBannerTitleExist(String title) async {
+    final response = await get(Uri.parse(ApiUrlRemote.bannerList));
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.any((json) => json['title'] == title);
+    } else {
+      throw Exception("Failed to fetch banners for title check");
+    }
+  }
 }

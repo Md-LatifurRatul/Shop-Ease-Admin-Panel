@@ -53,5 +53,15 @@ class BannerBloc extends Bloc<BannerEvent, BannerState> {
         emit(BannerFailure(e.toString()));
       }
     });
+
+    on<CheckBannerTitleEvent>((event, emit) async {
+      emit(BannerLoading());
+      final exists = await repository.doesBannerTitleExist(event.title);
+      if (exists) {
+        emit(BannerTitleExists());
+      } else {
+        emit(BannerTitleAvailable());
+      }
+    });
   }
 }
