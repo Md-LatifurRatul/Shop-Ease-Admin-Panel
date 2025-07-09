@@ -1,4 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shop_ease_admin/config/app_router.dart';
+import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
+import 'package:shop_ease_admin/features/views/auth/bloc/auth_event.dart';
+import 'package:shop_ease_admin/features/views/auth/bloc/auth_state.dart';
+import 'package:shop_ease_admin/widgets/snack_message.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -16,72 +24,109 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Admin Login",
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.indigo.shade900,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticated) {
+          SnackMessage.showSnackMessage(context, "Login Success");
+          Navigator.pushNamed(context, AppRouter.dashboard);
+        } else if (state is AuthFailure) {
+          SnackMessage.showSnackMessage(context, state.message);
+          log(state.message);
+        }
+      },
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Admin Login",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo.shade900,
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
+            const SizedBox(height: 30),
 
-          TextFormField(
-            controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.mail),
-              border: OutlineInputBorder(),
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.mail),
+                border: OutlineInputBorder(),
+              ),
+              validator:
+                  (value) =>
+                      value == null || value.isEmpty
+                          ? 'Enter your email'
+                          : null,
             ),
-            validator:
-                (value) =>
-                    value == null || value.isEmpty ? 'Enter your email' : null,
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          TextFormField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: const Icon(Icons.lock),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.lock),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
+                border: const OutlineInputBorder(),
+              ),
+              validator:
+                  (value) =>
+                      value == null || value.isEmpty
+                          ? 'Enter your password'
+                          : null,
+            ),
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return ElevatedButton(
+                    onPressed:
+                        state is AuthLoading
+                            ? null
+                            : () {
+                              if (_formKey.currentState!.validate()) {
+                                context.read<AuthBloc>().add(
+                                  AuthSignInRequested(
+                                    email: _emailController.text.trim(),
+                                    password: _passwordController.text.trim(),
+                                  ),
+                                );
+                              }
+                            },
+
+                    child:
+                        state is AuthLoading
+                            ? const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            )
+                            : const Text(
+                              "Login",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                  );
                 },
               ),
-              border: const OutlineInputBorder(),
             ),
-            validator:
-                (value) =>
-                    value == null || value.isEmpty
-                        ? 'Enter your password'
-                        : null,
-          ),
-          const SizedBox(height: 30),
-
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {}
-              },
-
-              child: const Text("Login", style: TextStyle(color: Colors.white)),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

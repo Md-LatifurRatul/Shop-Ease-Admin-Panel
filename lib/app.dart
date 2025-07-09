@@ -31,8 +31,8 @@ class ShopEaseAdminApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: "ShopEase Admin Panel",
         theme: AppTheme.lightTheme,
-        // initialRoute: AppRouter.login,
-        initialRoute: AppRouter.dashboard,
+        initialRoute: AppRouter.authGate,
+        // initialRoute: AppRouter.dashboard,
         onGenerateRoute: AppRouter.generateRoute,
       ),
     );

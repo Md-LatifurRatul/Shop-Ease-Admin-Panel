@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop_ease_admin/features/views/auth/screens/auth_gate.dart';
 import 'package:shop_ease_admin/features/views/auth/screens/login_screen.dart';
 import 'package:shop_ease_admin/features/views/banners/models/banner_model.dart';
 import 'package:shop_ease_admin/features/views/banners/screens/banner_screen.dart';
@@ -9,7 +10,8 @@ import 'package:shop_ease_admin/features/views/products/screens/edit_product_scr
 import 'package:shop_ease_admin/features/views/products/screens/product_screen.dart';
 
 class AppRouter {
-  static const String login = "/";
+  static const String authGate = "/";
+  static const String login = "/login";
   static const String dashboard = "/dashboard";
   static const String banners = "/banners";
   static const String products = "/products";
@@ -18,6 +20,8 @@ class AppRouter {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case authGate:
+        return MaterialPageRoute(builder: (_) => const AuthGate());
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case dashboard:
