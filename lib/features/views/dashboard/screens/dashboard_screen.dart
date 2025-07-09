@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/config/app_router.dart';
+import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_event.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_state.dart';
@@ -10,15 +11,8 @@ import 'package:shop_ease_admin/widgets/confirm_alert.dart';
 import 'package:shop_ease_admin/widgets/side_bar_menu.dart';
 import 'package:shop_ease_admin/widgets/snack_message.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  String currentRoute = "/dashboard";
 
   @override
   Widget build(BuildContext context) {
@@ -33,22 +27,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         body: Row(
           children: [
             //! Sidebar
-            SideBarMenu(
-              selectRoute: currentRoute,
-              onMenuItemSelected: (route) {
-                setState(() => currentRoute = route);
-                Navigator.pushNamed(context, route);
+            BlocSelector<SidebarNavigationCubit, String, String>(
+              selector: (state) => state,
+              builder: (context, currentRoute) {
+                return SideBarMenu(
+                  selectRoute: currentRoute,
+                  onMenuItemSelected: (route) {
+                    context.read<SidebarNavigationCubit>().selectRoute(route);
+                    Navigator.pushNamed(context, route);
+                  },
+                );
               },
             ),
-
             //! Content Area
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(),
+                  _buildHeader(context),
                   const SizedBox(height: 20),
-                  _buildWelcome(),
+                  _buildWelcome(context),
                   const SizedBox(height: 20),
                   const BannerListSection(),
                   const ProductListSection(),
@@ -61,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       height: 60,
       color: Colors.deepPurple[50],
@@ -104,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildWelcome() {
+  Widget _buildWelcome(BuildContext context) {
     return Expanded(
       flex: 0,
       child: Center(
