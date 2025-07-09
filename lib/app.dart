@@ -8,7 +8,6 @@ import 'package:shop_ease_admin/data/repositories/banner_repository.dart';
 import 'package:shop_ease_admin/data/repositories/product_repository.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/auth/cubit/password_visibility_cubit.dart';
-import 'package:shop_ease_admin/features/views/auth/widgets/login_form.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -30,10 +29,7 @@ class ShopEaseAdminApp extends StatelessWidget {
               ),
         ),
 
-        BlocProvider(
-          create: (_) => PasswordVisibilityCubit(),
-          child: LoginForm(),
-        ),
+        BlocProvider(create: (_) => PasswordVisibilityCubit()),
         BlocProvider(create: (_) => ImagePickerCubit()),
       ],
       child: MaterialApp(

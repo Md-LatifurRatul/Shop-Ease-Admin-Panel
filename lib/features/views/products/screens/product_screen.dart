@@ -1,13 +1,14 @@
 import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_event.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_state.dart';
 import 'package:shop_ease_admin/features/views/products/models/product_model.dart';
+import 'package:shop_ease_admin/utils/image_picker_util.dart';
 import 'package:shop_ease_admin/widgets/custom_image_card.dart';
 import 'package:shop_ease_admin/widgets/custom_upload_button.dart';
 import 'package:shop_ease_admin/widgets/header_widget.dart';
@@ -29,27 +30,19 @@ class _ProductScreenState extends State<ProductScreen> {
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
 
-  Uint8List? _selectedImage;
-
   Future<void> _pickImage() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
-
-    if (result != null && result.files.single.bytes != null) {
-      setState(() {
-        _selectedImage = result.files.single.bytes;
-      });
+    final bytes = await pickImage();
+    if (bytes != null) {
+      context.read<ImagePickerCubit>().setImage(bytes);
     }
   }
 
-  void _uploadProduct() async {
+  void _uploadProduct(Uint8List? imageBytes) async {
     if (_nameController.text.isEmpty ||
         _priceController.text.isEmpty ||
         _ratingController.text.isEmpty ||
         _descController.text.isEmpty ||
-        _selectedImage == null) {
+        imageBytes == null) {
       SnackMessage.showSnackMessage(context, "Please fill all the fields");
       return;
     }
@@ -64,7 +57,7 @@ class _ProductScreenState extends State<ProductScreen> {
     );
 
     context.read<ProductBloc>().add(
-      AddProductEvent(product: product, imageBytes: _selectedImage!),
+      AddProductEvent(product: product, imageBytes: imageBytes),
     );
   }
 
@@ -79,7 +72,7 @@ class _ProductScreenState extends State<ProductScreen> {
           _priceController.clear();
           _ratingController.clear();
           _descController.clear();
-          _selectedImage = null;
+          context.read<ImagePickerCubit>().clearImage();
         } else if (state is ProductFailure) {
           SnackMessage.showSnackMessage(context, state.error);
           log(state.error);
@@ -118,56 +111,62 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget _buildProductForm([bool isLoading = false]) {
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
+      child: BlocBuilder<ImagePickerCubit, Uint8List?>(
+        builder: (context, imageBytes) {
+          return Column(
             children: [
-              Expanded(child: _buildTextField(_nameController, "Product Name")),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  _priceController,
-                  "Price",
-                  inputType: TextInputType.number,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(_nameController, "Product Name"),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      _priceController,
+                      "Price",
+                      inputType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      _ratingController,
+                      "Rating",
+                      inputType: TextInputType.number,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  _ratingController,
-                  "Rating",
-                  inputType: TextInputType.number,
-                ),
+
+              const SizedBox(height: 16),
+
+              _buildTextField(_descController, "Description", maxLines: 3),
+
+              const SizedBox(height: 16),
+              CustomImageCard(imageBytes: imageBytes),
+              const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  ImageSelectingButton(
+                    label: "Pick Product Image",
+                    onPressed: _pickImage,
+                  ),
+
+                  const SizedBox(width: 20),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              CustomUploadButton(
+                label: isLoading ? "Uploading..." : "Upload Product",
+                onPressed: isLoading ? null : () => _uploadProduct(imageBytes),
               ),
             ],
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildTextField(_descController, "Description", maxLines: 3),
-
-          const SizedBox(height: 16),
-          CustomImageCard(imageBytes: _selectedImage),
-          const SizedBox(height: 10),
-
-          Row(
-            children: [
-              ImageSelectingButton(
-                label: "Pick Product Image",
-                onPressed: _pickImage,
-              ),
-
-              const SizedBox(width: 20),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          CustomUploadButton(
-            label: isLoading ? "Uploading..." : "Upload Product",
-            onPressed: isLoading ? null : _uploadProduct,
-          ),
-        ],
+          );
+        },
       ),
     );
   }

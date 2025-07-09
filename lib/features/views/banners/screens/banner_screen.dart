@@ -29,7 +29,9 @@ class _BannerScreenState extends State<BannerScreen> {
 
   Future<void> _pickBannerImage() async {
     final bytes = await pickImage();
-    context.read<ImagePickerCubit>().setImage(bytes);
+    if (bytes != null) {
+      context.read<ImagePickerCubit>().setImage(bytes);
+    }
   }
 
   Future<void> _uploadBanner(Uint8List? imageBytes) async {
@@ -37,8 +39,6 @@ class _BannerScreenState extends State<BannerScreen> {
       SnackMessage.showSnackMessage(context, "Please fill all the fields");
       return;
     }
-
-    // Backend
 
     final banner = BannerModelLocal(
       title: _titleController.text,
@@ -82,7 +82,7 @@ class _BannerScreenState extends State<BannerScreen> {
                   children: [
                     _buildHeader(),
 
-                    if (state is! BannerLoading) _buildBannerForm(),
+                    _buildBannerForm(state is BannerLoading),
                   ],
                 ),
               ),
@@ -106,7 +106,7 @@ class _BannerScreenState extends State<BannerScreen> {
     );
   }
 
-  Widget _buildBannerForm() {
+  Widget _buildBannerForm([bool isLoading = false]) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: BlocBuilder<ImagePickerCubit, Uint8List?>(
@@ -138,10 +138,8 @@ class _BannerScreenState extends State<BannerScreen> {
               const SizedBox(height: 20),
 
               CustomUploadButton(
-                label: "Upload Banner",
-                onPressed: () {
-                  _uploadBanner(imageBytes);
-                },
+                label: isLoading ? "Uploading..." : "Upload Banner",
+                onPressed: isLoading ? null : () => _uploadBanner(imageBytes),
               ),
             ],
           );
