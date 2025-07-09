@@ -32,3 +32,7 @@ class ProductFailure extends ProductState {
   @override
   List<Object?> get props => [error];
 }
+
+class ProductNameExists extends ProductState {}
+
+class ProductNameAvailable extends ProductState {}

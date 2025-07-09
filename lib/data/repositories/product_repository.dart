@@ -90,4 +90,15 @@ class ProductRepository {
       throw Exception("Failed to delete product");
     }
   }
+
+  Future<bool> doesProductTitleExist(String name) async {
+    final response = await get(Uri.parse(ApiUrlRemote.productList));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(response.body);
+      return jsonList.any((json) => json["name"] == name);
+    } else {
+      throw Exception("Failed to fetch products for title check");
+    }
+  }
 }

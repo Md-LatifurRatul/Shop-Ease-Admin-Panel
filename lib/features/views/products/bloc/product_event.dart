@@ -29,3 +29,8 @@ class DeleteProductEvent extends ProductEvent {
 
   DeleteProductEvent({required this.id});
 }
+
+class CheckProductNameEvent extends ProductEvent {
+  final String name;
+  CheckProductNameEvent({required this.name});
+}
