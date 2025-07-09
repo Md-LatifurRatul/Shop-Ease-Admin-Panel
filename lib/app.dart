@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/config/app_router.dart';
 import 'package:shop_ease_admin/core/app_theme.dart';
+import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
 import 'package:shop_ease_admin/data/repositories/auth_repository.dart';
 import 'package:shop_ease_admin/data/repositories/banner_repository.dart';
 import 'package:shop_ease_admin/data/repositories/product_repository.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
+import 'package:shop_ease_admin/features/views/auth/cubit/password_visibility_cubit.dart';
+import 'package:shop_ease_admin/features/views/auth/widgets/login_form.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +29,12 @@ class ShopEaseAdminApp extends StatelessWidget {
                 AuthRepository(supabaseClient: Supabase.instance.client),
               ),
         ),
+
+        BlocProvider(
+          create: (_) => PasswordVisibilityCubit(),
+          child: LoginForm(),
+        ),
+        BlocProvider(create: (_) => ImagePickerCubit()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -6,6 +6,7 @@ import 'package:shop_ease_admin/config/app_router.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_event.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_state.dart';
+import 'package:shop_ease_admin/features/views/auth/cubit/password_visibility_cubit.dart';
 import 'package:shop_ease_admin/widgets/snack_message.dart';
 
 class LoginForm extends StatefulWidget {
@@ -19,8 +20,6 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -64,29 +63,33 @@ class _LoginFormState extends State<LoginForm> {
             ),
             const SizedBox(height: 20),
 
-            TextFormField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+            BlocBuilder<PasswordVisibilityCubit, bool>(
+              builder: (context, obsecurePassword) {
+                return TextFormField(
+                  controller: _passwordController,
+                  obscureText: obsecurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obsecurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        context.read<PasswordVisibilityCubit>().toggle();
+                      },
+                    ),
+                    border: const OutlineInputBorder(),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-                border: const OutlineInputBorder(),
-              ),
-              validator:
-                  (value) =>
-                      value == null || value.isEmpty
-                          ? 'Enter your password'
-                          : null,
+                  validator:
+                      (value) =>
+                          value == null || value.isEmpty
+                              ? 'Enter your password'
+                              : null,
+                );
+              },
             ),
             const SizedBox(height: 30),
 

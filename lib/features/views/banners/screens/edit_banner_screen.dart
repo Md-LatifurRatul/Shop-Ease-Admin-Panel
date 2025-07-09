@@ -1,13 +1,14 @@
 import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_event.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_state.dart';
 import 'package:shop_ease_admin/features/views/banners/models/banner_model.dart';
+import 'package:shop_ease_admin/utils/image_picker_util.dart';
 import 'package:shop_ease_admin/widgets/custom_image_card.dart';
 import 'package:shop_ease_admin/widgets/custom_upload_button.dart';
 import 'package:shop_ease_admin/widgets/image_selecting_button.dart';
@@ -24,7 +25,6 @@ class EditBannerScreen extends StatefulWidget {
 
 class _EditBannerScreenState extends State<EditBannerScreen> {
   TextEditingController _titleController = TextEditingController();
-  Uint8List? _imageBytes;
   String? _existingImageUrl;
 
   @override
@@ -35,21 +35,16 @@ class _EditBannerScreenState extends State<EditBannerScreen> {
   }
 
   Future<void> _pickUpdateBannerImage() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
+    final bytes = await pickImage();
 
-    if (result != null && result.files.single.bytes != null) {
-      setState(() {
-        _imageBytes = result.files.single.bytes;
-      });
+    if (bytes != null) {
+      context.read<ImagePickerCubit>().setImage(bytes);
     }
   }
 
-  Future<void> _uploadUpdateBanner() async {
-    if (_titleController.text.isEmpty || _imageBytes == null) {
-      SnackMessage.showSnackMessage(context, "Please fill all the fields");
+  Future<void> _uploadUpdateBanner(Uint8List? imageBytes) async {
+    if (_titleController.text.isEmpty || imageBytes == null) {
+      SnackMessage.showSnackMessage(context, "Please update all the fields");
       return;
     }
 
@@ -57,7 +52,7 @@ class _EditBannerScreenState extends State<EditBannerScreen> {
       UpdateBannerEvent(
         id: widget.banner.id,
         title: _titleController.text,
-        imageBytes: _imageBytes,
+        imageBytes: imageBytes,
       ),
     );
   }
@@ -68,6 +63,7 @@ class _EditBannerScreenState extends State<EditBannerScreen> {
       listener: (context, state) {
         if (state is BannerSuccess) {
           SnackMessage.showSnackMessage(context, "Banner updated!");
+          context.read<ImagePickerCubit>().clearImage();
           Navigator.pop(context);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.read<BannerBloc>().add(FetchBannersEvent());
@@ -89,9 +85,13 @@ class _EditBannerScreenState extends State<EditBannerScreen> {
                   decoration: const InputDecoration(labelText: "Banner Title"),
                 ),
                 const SizedBox(height: 20),
-                CustomImageCard(
-                  imageBytes: _imageBytes,
-                  imageUrl: _imageBytes == null ? _existingImageUrl : null,
+                BlocBuilder<ImagePickerCubit, Uint8List?>(
+                  builder: (context, imageBytes) {
+                    return CustomImageCard(
+                      imageBytes: imageBytes,
+                      imageUrl: imageBytes == null ? _existingImageUrl : null,
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
 
@@ -103,11 +103,19 @@ class _EditBannerScreenState extends State<EditBannerScreen> {
 
                 const SizedBox(height: 30),
 
-                CustomUploadButton(
-                  label:
-                      state is BannerLoading ? "Updating..." : "Update Banner",
-                  onPressed:
-                      state is BannerLoading ? null : _uploadUpdateBanner,
+                BlocBuilder<ImagePickerCubit, Uint8List?>(
+                  builder: (context, imageBytes) {
+                    return CustomUploadButton(
+                      label:
+                          state is BannerLoading
+                              ? "Updating..."
+                              : "Update Banner",
+                      onPressed:
+                          state is BannerLoading
+                              ? null
+                              : () => _uploadUpdateBanner(imageBytes),
+                    );
+                  },
                 ),
               ],
             ),

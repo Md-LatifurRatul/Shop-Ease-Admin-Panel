@@ -1,13 +1,14 @@
 import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_event.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_state.dart';
 import 'package:shop_ease_admin/features/views/banners/models/banner_model_local.dart';
+import 'package:shop_ease_admin/utils/image_picker_util.dart';
 import 'package:shop_ease_admin/widgets/custom_image_card.dart';
 import 'package:shop_ease_admin/widgets/custom_upload_button.dart';
 import 'package:shop_ease_admin/widgets/image_selecting_button.dart';
@@ -25,23 +26,14 @@ class _BannerScreenState extends State<BannerScreen> {
   String currentRoute = "/banners";
 
   final TextEditingController _titleController = TextEditingController();
-  Uint8List? _selectedImageBytes;
 
   Future<void> _pickBannerImage() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-    );
-
-    if (result != null && result.files.single.bytes != null) {
-      setState(() {
-        _selectedImageBytes = result.files.single.bytes;
-      });
-    }
+    final bytes = await pickImage();
+    context.read<ImagePickerCubit>().setImage(bytes);
   }
 
-  Future<void> _uploadBanner() async {
-    if (_titleController.text.isEmpty || _selectedImageBytes == null) {
+  Future<void> _uploadBanner(Uint8List? imageBytes) async {
+    if (_titleController.text.isEmpty || imageBytes == null) {
       SnackMessage.showSnackMessage(context, "Please fill all the fields");
       return;
     }
@@ -50,7 +42,7 @@ class _BannerScreenState extends State<BannerScreen> {
 
     final banner = BannerModelLocal(
       title: _titleController.text,
-      imageBytes: _selectedImageBytes,
+      imageBytes: imageBytes,
     );
 
     context.read<BannerBloc>().add(AddBannerEvent(banner: banner));
@@ -64,7 +56,7 @@ class _BannerScreenState extends State<BannerScreen> {
           SnackMessage.showSnackMessage(context, "Banner uploaded!");
 
           _titleController.clear();
-          _selectedImageBytes = null;
+          context.read<ImagePickerCubit>().clearImage();
         } else if (state is BannerFailure) {
           SnackMessage.showSnackMessage(context, state.error);
           log(state.error);
@@ -117,39 +109,43 @@ class _BannerScreenState extends State<BannerScreen> {
   Widget _buildBannerForm() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextFormField(
-            controller: _titleController,
-            decoration: const InputDecoration(labelText: "Banner Title"),
-            validator:
-                (value) =>
-                    value == null || value.isEmpty
-                        ? 'Enter your banner title'
-                        : null,
+      child: BlocBuilder<ImagePickerCubit, Uint8List?>(
+        builder: (context, imageBytes) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: "Banner Title"),
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Enter your banner title'
+                            : null,
 
-            onChanged: (_) {},
-          ),
-          const SizedBox(height: 20),
+                onChanged: (_) {},
+              ),
+              const SizedBox(height: 20),
 
-          CustomImageCard(imageBytes: _selectedImageBytes),
-          const SizedBox(height: 20),
+              CustomImageCard(imageBytes: imageBytes),
+              const SizedBox(height: 20),
 
-          ImageSelectingButton(
-            label: "Choose Image",
-            onPressed: _pickBannerImage,
-          ),
+              ImageSelectingButton(
+                label: "Choose Image",
+                onPressed: _pickBannerImage,
+              ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          CustomUploadButton(
-            label: "Upload Banner",
-            onPressed: () {
-              _uploadBanner();
-            },
-          ),
-        ],
+              CustomUploadButton(
+                label: "Upload Banner",
+                onPressed: () {
+                  _uploadBanner(imageBytes);
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
