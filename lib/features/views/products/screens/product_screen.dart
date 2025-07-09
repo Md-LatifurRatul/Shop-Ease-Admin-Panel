@@ -27,6 +27,8 @@ class _ProductScreenState extends State<ProductScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+  ProductModel? _pendingProduct;
+  Uint8List? _pendingImageBytes;
 
   Future<void> _pickImage() async {
     final bytes = await pickImage();
@@ -45,7 +47,7 @@ class _ProductScreenState extends State<ProductScreen> {
       return;
     }
 
-    final product = ProductModel(
+    _pendingProduct = ProductModel(
       id: "",
       name: _nameController.text,
       price: double.tryParse(_priceController.text) ?? 0,
@@ -53,9 +55,14 @@ class _ProductScreenState extends State<ProductScreen> {
       description: _descController.text,
       imageUrl: "",
     );
+    _pendingImageBytes = imageBytes;
+
+    // context.read<ProductBloc>().add(
+    //   AddProductEvent(product: product, imageBytes: imageBytes),
+    // );
 
     context.read<ProductBloc>().add(
-      AddProductEvent(product: product, imageBytes: imageBytes),
+      CheckProductNameEvent(name: _nameController.text),
     );
   }
 
@@ -63,7 +70,24 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<ProductBloc, ProductState>(
       listener: (context, state) {
-        if (state is ProductSuccess) {
+        if (state is ProductNameExists) {
+          SnackMessage.showSnackMessage(context, "Product already exists!");
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<ProductBloc>().add(FetchProductsEvent());
+          });
+        } else if (state is ProductNameAvailable) {
+          if (_pendingProduct != null && _pendingImageBytes != null) {
+            context.read<ProductBloc>().add(
+              AddProductEvent(
+                product: _pendingProduct!,
+                imageBytes: _pendingImageBytes!,
+              ),
+            );
+            _pendingProduct = null;
+            _pendingImageBytes = null;
+          }
+        } else if (state is ProductSuccess) {
           SnackMessage.showSnackMessage(context, "Product uploaded!");
 
           _nameController.clear();
