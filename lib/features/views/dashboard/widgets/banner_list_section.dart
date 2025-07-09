@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/config/app_router.dart';
@@ -15,6 +18,8 @@ class BannerListSection extends StatefulWidget {
 }
 
 class _BannerListSectionState extends State<BannerListSection> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -22,34 +27,47 @@ class _BannerListSectionState extends State<BannerListSection> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            "Banners",
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
-        SizedBox(
-          height: 160,
-          child: BlocBuilder<BannerBloc, BannerState>(
-            builder: (context, state) {
-              if (state is BannerLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is BannerLoaded) {
-                final banners = state.banners;
-                if (banners.isEmpty) {
-                  return const Center(child: Text("No banners found."));
-                }
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-                return ListView.separated(
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 160,
+      child: BlocBuilder<BannerBloc, BannerState>(
+        builder: (context, state) {
+          log('BannerBloc state: $state');
+          if (state is BannerLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is BannerLoaded) {
+            log('Loaded banners: ${state.banners.length}');
+            final banners = state.banners;
+            if (banners.isEmpty) {
+              return const Center(child: Text("No banners found."));
+            }
+            return Listener(
+              onPointerSignal: (pointerSignal) {
+                if (pointerSignal is PointerScrollEvent) {
+                  final newOffset =
+                      _scrollController.offset + pointerSignal.scrollDelta.dy;
+                  _scrollController.jumpTo(
+                    newOffset.clamp(
+                      0.0,
+                      _scrollController.position.maxScrollExtent,
+                    ),
+                  );
+                }
+              },
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                interactive: true,
+                child: ListView.separated(
+                  controller: _scrollController,
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: banners.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (context, index) {
@@ -74,7 +92,7 @@ class _BannerListSectionState extends State<BannerListSection> {
                                           banner.imageUrl,
                                           fit: BoxFit.cover,
                                           errorBuilder:
-                                              (_, __, ___) => Icon(
+                                              (_, __, ___) => const Icon(
                                                 Icons.broken_image,
                                                 size: 40,
                                               ),
@@ -93,7 +111,7 @@ class _BannerListSectionState extends State<BannerListSection> {
                                   Expanded(
                                     child: Text(
                                       banner.title,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -142,15 +160,15 @@ class _BannerListSectionState extends State<BannerListSection> {
                       ),
                     );
                   },
-                );
-              } else if (state is BannerFailure) {
-                return Center(child: Text("Error: ${state.error}"));
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      ],
+                ),
+              ),
+            );
+          } else if (state is BannerFailure) {
+            return Center(child: Text("Error: ${state.error}"));
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 }

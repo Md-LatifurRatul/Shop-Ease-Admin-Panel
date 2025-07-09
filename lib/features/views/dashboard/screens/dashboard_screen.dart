@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/config/app_router.dart';
-import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_event.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_state.dart';
 import 'package:shop_ease_admin/features/views/dashboard/widgets/banner_list_section.dart';
 import 'package:shop_ease_admin/features/views/dashboard/widgets/product_list_section.dart';
 import 'package:shop_ease_admin/widgets/confirm_alert.dart';
-import 'package:shop_ease_admin/widgets/side_bar_menu.dart';
 import 'package:shop_ease_admin/widgets/snack_message.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -23,36 +21,18 @@ class DashboardScreen extends StatelessWidget {
           Navigator.pushReplacementNamed(context, AppRouter.login);
         }
       },
-      child: Scaffold(
-        body: Row(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //! Sidebar
-            BlocSelector<SidebarNavigationCubit, String, String>(
-              selector: (state) => state,
-              builder: (context, currentRoute) {
-                return SideBarMenu(
-                  selectRoute: currentRoute,
-                  onMenuItemSelected: (route) {
-                    context.read<SidebarNavigationCubit>().selectRoute(route);
-                    Navigator.pushNamed(context, route);
-                  },
-                );
-              },
-            ),
-            //! Content Area
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context),
-                  const SizedBox(height: 20),
-                  _buildWelcome(context),
-                  const SizedBox(height: 20),
-                  const BannerListSection(),
-                  const ProductListSection(),
-                ],
-              ),
-            ),
+            _buildHeader(context),
+            const SizedBox(height: 20),
+            _buildWelcome(context),
+            const SizedBox(height: 20),
+            const BannerListSection(),
+            const SizedBox(height: 20),
+            const ProductListSection(),
           ],
         ),
       ),
@@ -71,8 +51,7 @@ class DashboardScreen extends StatelessWidget {
             "Dashboard",
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          Spacer(),
-
+          const Spacer(),
           ElevatedButton.icon(
             icon: const Icon(Icons.logout),
             label: const Text("Logout"),
@@ -103,13 +82,10 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildWelcome(BuildContext context) {
-    return Expanded(
-      flex: 0,
-      child: Center(
-        child: Text(
-          "Welcome to ShopEase Admin Panel",
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+    return Center(
+      child: Text(
+        "Welcome to ShopEase Admin Panel",
+        style: Theme.of(context).textTheme.headlineMedium,
       ),
     );
   }

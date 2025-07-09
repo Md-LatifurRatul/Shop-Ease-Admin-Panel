@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
-import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_event.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_state.dart';
@@ -13,7 +12,6 @@ import 'package:shop_ease_admin/utils/image_picker_util.dart';
 import 'package:shop_ease_admin/widgets/custom_image_card.dart';
 import 'package:shop_ease_admin/widgets/custom_upload_button.dart';
 import 'package:shop_ease_admin/widgets/image_selecting_button.dart';
-import 'package:shop_ease_admin/widgets/side_bar_menu.dart';
 import 'package:shop_ease_admin/widgets/snack_message.dart';
 
 class BannerScreen extends StatefulWidget {
@@ -56,40 +54,19 @@ class _BannerScreenState extends State<BannerScreen> {
 
           _titleController.clear();
           context.read<ImagePickerCubit>().clearImage();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<BannerBloc>().add(FetchBannersEvent());
+          });
         } else if (state is BannerFailure) {
           SnackMessage.showSnackMessage(context, state.error);
           log(state.error);
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          body: Row(
-            children: [
-              BlocSelector<SidebarNavigationCubit, String, String>(
-                selector: (state) => state,
-                builder: (context, currentRoute) {
-                  return SideBarMenu(
-                    selectRoute: currentRoute,
-                    onMenuItemSelected: (route) {
-                      context.read<SidebarNavigationCubit>().selectRoute(route);
-                      Navigator.pushNamed(context, route);
-                    },
-                  );
-                },
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
 
-                  children: [
-                    _buildHeader(),
-
-                    _buildBannerForm(state is BannerLoading),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          children: [_buildHeader(), _buildBannerForm(state is BannerLoading)],
         );
       },
     );
