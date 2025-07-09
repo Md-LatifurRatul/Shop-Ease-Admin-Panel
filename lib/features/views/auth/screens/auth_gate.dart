@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shop_ease_admin/config/app_router.dart';
+import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_bloc.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_event.dart';
 import 'package:shop_ease_admin/features/views/auth/bloc/auth_state.dart';
+import 'package:shop_ease_admin/features/views/auth/screens/login_screen.dart';
+import 'package:shop_ease_admin/widgets/main_layout.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -14,15 +16,19 @@ class AuthGate extends StatelessWidget {
       context.read<AuthBloc>().add(AuthCheckRequested());
     });
 
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+          context.read<SidebarNavigationCubit>().selectRoute('/dashboard');
+          return MainLayout();
         } else if (state is AuthUnauthenticated) {
-          Navigator.pushReplacementNamed(context, AppRouter.login);
+          return LoginScreen();
+        } else {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
       },
-      child: const Scaffold(body: Center(child: CircularProgressIndicator())),
     );
   }
 }

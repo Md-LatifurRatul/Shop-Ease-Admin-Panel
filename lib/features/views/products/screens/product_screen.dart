@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
-import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_event.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_state.dart';
@@ -14,7 +13,6 @@ import 'package:shop_ease_admin/widgets/custom_image_card.dart';
 import 'package:shop_ease_admin/widgets/custom_upload_button.dart';
 import 'package:shop_ease_admin/widgets/header_widget.dart';
 import 'package:shop_ease_admin/widgets/image_selecting_button.dart';
-import 'package:shop_ease_admin/widgets/side_bar_menu.dart';
 import 'package:shop_ease_admin/widgets/snack_message.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -73,39 +71,22 @@ class _ProductScreenState extends State<ProductScreen> {
           _ratingController.clear();
           _descController.clear();
           context.read<ImagePickerCubit>().clearImage();
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<ProductBloc>().add(FetchProductsEvent());
+          });
         } else if (state is ProductFailure) {
           SnackMessage.showSnackMessage(context, state.error);
           log(state.error);
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          body: Row(
-            children: [
-              BlocSelector<SidebarNavigationCubit, String, String>(
-                selector: (state) => state,
-                builder: (context, currentRoute) {
-                  return SideBarMenu(
-                    selectRoute: currentRoute,
-                    onMenuItemSelected: (route) {
-                      context.read<SidebarNavigationCubit>().selectRoute(route);
-                      Navigator.pushNamed(context, route);
-                    },
-                  );
-                },
-              ),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const HeaderWidget(title: "Manage Products"),
-                    _buildProductForm(state is ProductLoading),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const HeaderWidget(title: "Manage Products"),
+            _buildProductForm(state is ProductLoading),
+          ],
         );
       },
     );

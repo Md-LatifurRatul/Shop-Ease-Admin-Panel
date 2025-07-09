@@ -27,7 +27,7 @@ class _LoginFormState extends State<LoginForm> {
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           SnackMessage.showSnackMessage(context, "Login Success");
-          Navigator.pushNamed(context, AppRouter.dashboard);
+          Navigator.pushReplacementNamed(context, AppRouter.dashboard);
         } else if (state is AuthFailure) {
           SnackMessage.showSnackMessage(context, state.message);
           log(state.message);
