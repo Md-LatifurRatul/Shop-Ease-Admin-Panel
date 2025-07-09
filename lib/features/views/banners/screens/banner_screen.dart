@@ -24,6 +24,9 @@ class BannerScreen extends StatefulWidget {
 class _BannerScreenState extends State<BannerScreen> {
   final TextEditingController _titleController = TextEditingController();
 
+  BannerModelLocal? _pendingBanner;
+  Uint8List? _pendingImageBytes;
+
   Future<void> _pickBannerImage() async {
     final bytes = await pickImage();
     if (bytes != null) {
@@ -37,19 +40,35 @@ class _BannerScreenState extends State<BannerScreen> {
       return;
     }
 
-    final banner = BannerModelLocal(
+    _pendingBanner = BannerModelLocal(
       title: _titleController.text,
       imageBytes: imageBytes,
     );
 
-    context.read<BannerBloc>().add(AddBannerEvent(banner: banner));
+    // context.read<BannerBloc>().add(AddBannerEvent(banner: banner));
+    context.read<BannerBloc>().add(
+      CheckBannerTitleEvent(title: _titleController.text),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<BannerBloc, BannerState>(
       listener: (context, state) {
-        if (state is BannerLocalSuccess) {
+        if (state is BannerTitleExists) {
+          SnackMessage.showSnackMessage(context, "Banner already exists!");
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<BannerBloc>().add(FetchBannersEvent());
+          });
+        } else if (state is BannerTitleAvailable) {
+          if (_pendingBanner != null && _pendingImageBytes != null) {
+            context.read<BannerBloc>().add(
+              AddBannerEvent(banner: _pendingBanner!),
+            );
+            _pendingBanner = null;
+            _pendingImageBytes = null;
+          }
+        } else if (state is BannerLocalSuccess) {
           SnackMessage.showSnackMessage(context, "Banner uploaded!");
 
           _titleController.clear();

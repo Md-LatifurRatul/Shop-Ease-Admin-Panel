@@ -40,3 +40,8 @@ class DeleteBannerEvent extends BannerEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class CheckBannerTitleEvent extends BannerEvent {
+  final String title;
+  CheckBannerTitleEvent({required this.title});
+}
