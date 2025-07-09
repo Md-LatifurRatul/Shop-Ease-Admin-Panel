@@ -56,7 +56,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _ratingController.text.isEmpty ||
         _descController.text.isEmpty ||
         _selectUpdateImage == null) {
-      SnackMessage.showSnackMessage(context, "Please fill all the fields");
+      SnackMessage.showSnackMessage(context, "Please update all the fields");
       return;
     }
 
