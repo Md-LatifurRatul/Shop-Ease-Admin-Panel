@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
+import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_bloc.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_event.dart';
 import 'package:shop_ease_admin/features/views/banners/bloc/banner_state.dart';
@@ -23,8 +24,6 @@ class BannerScreen extends StatefulWidget {
 }
 
 class _BannerScreenState extends State<BannerScreen> {
-  String currentRoute = "/banners";
-
   final TextEditingController _titleController = TextEditingController();
 
   Future<void> _pickBannerImage() async {
@@ -66,13 +65,16 @@ class _BannerScreenState extends State<BannerScreen> {
         return Scaffold(
           body: Row(
             children: [
-              SideBarMenu(
-                selectRoute: currentRoute,
-                onMenuItemSelected: (route) {
-                  setState(() {
-                    currentRoute = route;
-                  });
-                  Navigator.pushNamed(context, route);
+              BlocSelector<SidebarNavigationCubit, String, String>(
+                selector: (state) => state,
+                builder: (context, currentRoute) {
+                  return SideBarMenu(
+                    selectRoute: currentRoute,
+                    onMenuItemSelected: (route) {
+                      context.read<SidebarNavigationCubit>().selectRoute(route);
+                      Navigator.pushNamed(context, route);
+                    },
+                  );
                 },
               ),
               Expanded(

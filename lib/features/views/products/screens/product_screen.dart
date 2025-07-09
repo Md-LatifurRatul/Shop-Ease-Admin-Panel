@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shop_ease_admin/cubit/image_picker_cubit.dart';
+import 'package:shop_ease_admin/cubit/sidebar_navigation_cubit.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_bloc.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_event.dart';
 import 'package:shop_ease_admin/features/views/products/bloc/product_state.dart';
@@ -24,7 +25,6 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  String currentRoute = "/products";
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
@@ -82,13 +82,16 @@ class _ProductScreenState extends State<ProductScreen> {
         return Scaffold(
           body: Row(
             children: [
-              SideBarMenu(
-                selectRoute: currentRoute,
-                onMenuItemSelected: (route) {
-                  setState(() {
-                    currentRoute = route;
-                    Navigator.pushNamed(context, route);
-                  });
+              BlocSelector<SidebarNavigationCubit, String, String>(
+                selector: (state) => state,
+                builder: (context, currentRoute) {
+                  return SideBarMenu(
+                    selectRoute: currentRoute,
+                    onMenuItemSelected: (route) {
+                      context.read<SidebarNavigationCubit>().selectRoute(route);
+                      Navigator.pushNamed(context, route);
+                    },
+                  );
                 },
               ),
 
