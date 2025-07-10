@@ -45,6 +45,8 @@ class _BannerScreenState extends State<BannerScreen> {
       imageBytes: imageBytes,
     );
 
+    _pendingImageBytes = imageBytes;
+
     // context.read<BannerBloc>().add(AddBannerEvent(banner: banner));
     context.read<BannerBloc>().add(
       CheckBannerTitleEvent(title: _titleController.text),
