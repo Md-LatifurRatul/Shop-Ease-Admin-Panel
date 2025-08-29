@@ -151,9 +151,5 @@ Switch between **local (`http://localhost:4000/api`)** and **production** by edi
 ### 2️⃣ Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/your-org/shop-ease-admin.git
-cd shop-ease-admin
-
 # Install dependencies
 flutter pub get
