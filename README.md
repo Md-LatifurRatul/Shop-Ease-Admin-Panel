@@ -145,7 +145,7 @@ Switch between **local (`http://localhost:4000/api`)** and **production** by edi
 - Flutter SDK (>=3.0)  
 - Supabase project (with email/password auth enabled)  
 - API backend (Shop-Ease API running on Node.js/Express)
-- 
+  
 # ** Update core/api_remote_base_url.dart with your API URL **
 # ** Add Supabase credentials in main.dart initialization **
 ### 2️⃣ Installation
